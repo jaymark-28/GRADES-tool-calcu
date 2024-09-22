@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade Calculator</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        input, button { margin: 10px 0; padding: 5px; }
+        #error { color: red; }
+        #dean_lister_message { color: green; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Grade Calculator</h1>
+        <form id="gradeForm">
+            <label for="prelim_grade">Prelim Grade:</label>
+            <input type="number" id="prelim_grade" name="prelim_grade" min="0" max="100" required>
+            <br>
+            <button type="button" py-click="calculate_required_grades()">Calculate</button>
+        </form>
+        <div id="result"></div>
+        <div id="error"></div>
+        <div id="dean_lister_message"></div>
+    </div>
+
+    <py-script>
+from js import document
+
+def calculate_required_grades():
+    passing_grade = 75
+    prelim_weight = 0.20
+    midterm_weight = 0.30
+    final_weight = 0.50
+    
+    required_midterm_grade = None
+    required_final_grade = None
+    error = None
+    dean_lister_message = None
+    
+    try:
+        prelim_grade = float(document.getElementById("prelim_grade").value)
+        
+        if not (0 <= prelim_grade <= 100):
+            raise ValueError("Prelim grade must be between 0 and 100.")
+        
+        if prelim_grade <= 30:
+            error = "It's difficult to pass with a prelim grade of 30 or below."
+        elif prelim_grade >= 90:
+            dean_lister_message = "Congratulations! With a prelim grade of 90 or above, you can be a dean's lister."
+        
+        max_possible_midterm_final = (passing_grade - prelim_weight * prelim_grade) / (midterm_weight + final_weight)
+        
+        if max_possible_midterm_final < 0:
+            error = "It's mathematically impossible to pass with the given prelim grade."
+        else:
+            required_midterm_grade = max_possible_midterm_final
+            required_final_grade = max_possible_midterm_final
+
+    except ValueError as e:
+        error = str(e)
+    except TypeError as e:
+        error = "Invalid type encountered: " + str(e)
+    
+    result_div = document.getElementById("result")
+    error_div = document.getElementById("error")
+    dean_lister_div = document.getElementById("dean_lister_message")
+    
+    if error:
+        result_div.innerHTML = ""
+        error_div.innerHTML = error
+        dean_lister_div.innerHTML = ""
+    else:
+        result_div.innerHTML = f"""
+        Required Midterm Grade: {required_midterm_grade:.2f}<br>
+        Required Final Grade: {required_final_grade:.2f}
+        """
+        error_div.innerHTML = ""
+        dean_lister_div.innerHTML = dean_lister_message if dean_lister_message else ""
+
+    </py-script>
+</body>
+</html>
